@@ -1,5 +1,5 @@
 from pyramid.view import view_config, view_defaults
-from .models import DBSession, Page
+from .models import DBSession, Page, WebScraper
 import simplejson
 
 
@@ -20,10 +20,11 @@ class View(object):
 
     @view_config(route_name='texts', request_method='POST')
     def create_text(self):
-        # TODO: new_text = get_text_from_url(url) # implement scraping method and use it here
         # TODO: validation?
+        # TODO: image scraping
+        scraper = WebScraper()
         new_url = (self.request.params['url']).encode('utf-8')
-        new_text = (self.request.params['text']).encode('utf-8')
+        new_text = scraper.get_text_from_url(new_url)
         new_page = Page(url=new_url, text=new_text)
         DBSession.add(new_page)
         DBSession.flush()

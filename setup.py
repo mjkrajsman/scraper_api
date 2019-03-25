@@ -10,7 +10,8 @@ requires = [
     'pyramid_tm',
     'sqlalchemy',
     'zope.sqlalchemy',
-    'simplejson'
+    'simplejson',
+    'lxml'
 ]
 
 dev_requires = [
