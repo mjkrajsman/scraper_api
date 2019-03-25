@@ -20,10 +20,17 @@ class View(object):
 
     @view_config(route_name='texts', request_method='POST')
     def create_text(self):
-        # TODO: implement scraping method and use it here
+        # TODO: new_text = get_text_from_url(url) # implement scraping method and use it here
+        # TODO: validation?
+        new_url = (self.request.params['url']).encode('utf-8')
+        new_text = (self.request.params['text']).encode('utf-8')
+        new_page = Page(url=new_url, text=new_text)
+        DBSession.add(new_page)
+        DBSession.flush()
+        DBSession.refresh(new_page)
         self.request.response.status = '200 OK'
         # TODO: handle failures
-        return {'text': 'POST'}
+        return simplejson.dumps(new_page, for_json=True)
 
     @view_config(route_name='text', request_method='GET')
     def read_text(self):
