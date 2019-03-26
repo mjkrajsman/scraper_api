@@ -23,7 +23,3 @@ def main(argv=sys.argv):
     DBSession.configure(bind=engine)
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-    with transaction.manager:
-        model = Page(url='www.example.com', text='Lorem ipsum dolor sit amet, consectetur adipiscing elit',
-                     images='path1; path2; longer/path3')
-        DBSession.add(model)

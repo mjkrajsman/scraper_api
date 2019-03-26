@@ -17,7 +17,7 @@ Base = declarative_base()
 class Page(Base):
     __tablename__ = 'scraped_data'
     id = Column(Integer, primary_key=True)
-    url = Column(Text)
+    url = Column(Text, unique=True, nullable=False)
     text = Column(Text)
     images = Column(Text)
 
@@ -68,8 +68,8 @@ class WebScraper(object):
             url = 'https://' + url
         return url
 
-    def normalize_image_url(self, image_url, website_url):
-        website_url = self.normalize_url(website_url)
+    @staticmethod
+    def normalize_image_url(image_url, website_url):
         if image_url[0:2] == "./":
             image_url = website_url + image_url[1:]
         elif image_url[0:1] == "/":
@@ -106,7 +106,9 @@ class WebScraper(object):
         r = requests.get(source)
         img_name = source.replace("://", "_").replace("/", "_")
         img_location = '%s/%s' % (str(destination), img_name)
-        open(img_location, 'wb').write(r.content)
+        # open(img_location, 'wb').write(r.content)
+        with open(img_location, 'wb') as f:
+            f.write(r.content)
         return img_location
 
     def get_images(self, source, destination='img', verbose=False):
