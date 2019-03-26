@@ -24,9 +24,6 @@ def main(argv=sys.argv):
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     with transaction.manager:
-        model = Page(url='www.example.com', text='A B C D', images='path1; path2; longer/path3')
-        DBSession.add(model)
-        model = Page(url='www.example2.com', text='A B C D E F G H', images='path1; path2; longer/path3')
-        DBSession.add(model)
-        model = Page(url='www.example3.com', text='A B C D E F G H I J K L', images='path1; path2; longer/path3')
+        model = Page(url='www.example.com', text='Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+                     images='path1; path2; longer/path3')
         DBSession.add(model)

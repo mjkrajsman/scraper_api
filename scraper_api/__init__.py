@@ -13,5 +13,7 @@ def main(global_config, **settings):
     config.include('pyramid_chameleon')
     config.add_route('texts', '/texts')
     config.add_route('text', '/texts/{id}')
+    config.add_route('images', '/images')
+    config.add_route('image', '/images/{id}')
     config.scan('.views')
     return config.make_wsgi_app()

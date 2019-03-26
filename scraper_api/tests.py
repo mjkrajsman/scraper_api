@@ -15,11 +15,8 @@ def _init_testing_db():
     Base.metadata.create_all(engine)
     DBSession.configure(bind=engine)
     with transaction.manager:
-        model = Page(url='www.example.com', text='A B C D', images='path1; path2; longer/path3')
-        DBSession.add(model)
-        model = Page(url='www.example2.com', text='A B C D E F G H', images='path1; path2; longer/path3')
-        DBSession.add(model)
-        model = Page(url='www.example3.com', text='A B C D E F G H I J K L', images='path1; path2; longer/path3')
+        model = Page(url='www.example.com', text='Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+                     images='path1; path2; longer/path3')
         DBSession.add(model)
     return DBSession
 
@@ -39,17 +36,9 @@ class ViewTests(unittest.TestCase):
         request = testing.DummyRequest()
         request.matchdict['id'] = '1'
         inst = View(request)
-        response = json.loads(inst.list_texts())
-        self.assertEqual(response['1']['text'], 'A B C D')
+        response = json.loads(inst.list_text())
+        self.assertEqual(response['1']['text'], 'Lorem ipsum dolor sit amet, consectetur adipiscing elit')
         self.assertEqual(response['1']['url'], 'www.example.com')
-
-    def test_create_text(self):
-        from .views import View
-
-        request = testing.DummyRequest()
-        inst = View(request)
-        response = inst.create_text()
-        self.assertEqual('POST', response['text'])
 
     def test_read_text(self):
         from .views import View
@@ -58,8 +47,39 @@ class ViewTests(unittest.TestCase):
         request.matchdict['id'] = '1'
         inst = View(request)
         response = json.loads(inst.read_text())
-        self.assertEqual(response['text'], 'A B C D')
+        self.assertEqual(response['text'], 'Lorem ipsum dolor sit amet, consectetur adipiscing elit')
         self.assertEqual(response['url'], 'www.example.com')
+
+    def test_list_images(self):
+        from .views import View
+
+        request = testing.DummyRequest()
+        request.matchdict['id'] = '1'
+        inst = View(request)
+        response = json.loads(inst.list_images())
+        self.assertEqual(response['1']['images'], 'path1; path2; longer/path3')
+        self.assertEqual(response['1']['url'], 'www.example.com')
+
+    def test_read_images(self):
+        from .views import View
+
+        request = testing.DummyRequest()
+        request.matchdict['id'] = '1'
+        inst = View(request)
+        response = json.loads(inst.read_images())
+        self.assertEqual(response['images'], 'path1; path2; longer/path3')
+        self.assertEqual(response['url'], 'www.example.com')
+
+    # TODO: implement POST test
+    # def test_create_text(self):
+    #     from .views import View
+    #
+    #     request = testing.DummyRequest()
+    #     inst = View(request)
+    #     response = inst.create_text()
+    #     self.assertEqual('POST', response['text'])
+
+
 
 
 class FunctionalTests(unittest.TestCase):
@@ -77,13 +97,13 @@ class FunctionalTests(unittest.TestCase):
         res = self.testapp.get('/texts', status=200)
         self.assertEqual(res.content_type, 'application/json')
 
-    def test_create_text(self):
-        res = self.testapp.post('/texts', status=200)
-        self.assertEqual(res.content_type, 'application/json')
+    # TODO: implement POST test
+    # def test_create_text(self):
+    #     res = self.testapp.post('/texts', status=200)
+    #     self.assertEqual(res.content_type, 'application/json')
 
     def test_read_text(self):
         res = self.testapp.get('/texts/1', status=200)
         self.assertEqual(res.content_type, 'application/json')
 
 # TODO: SADeprecationWarning: SessionExtension is deprecated in favor of the SessionEvents listener interface.
-# TODO: update tests - automatize requests (Postman)

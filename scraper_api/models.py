@@ -65,16 +65,17 @@ class WebScraper(object):
         if url[-1:] == "/":
             url = url[:-1]
         if url[0:8] != "https://" and url[0:7] != "http://":
-            url = 'http://' + url
+            url = 'https://' + url
         return url
 
     def normalize_image_url(self, image_url, website_url):
+        website_url = self.normalize_url(website_url)
         if image_url[0:2] == "./":
             image_url = website_url + image_url[1:]
-        if image_url[0:1] == "/":
+        elif image_url[0:1] == "/":
             image_url = website_url + image_url
         # TODO: code below breaks some images. make workaround for images starting with subfolder name.
-        # if image_url[0:len(website_url)] != website_url:
+        # elif image_url.find(self.normalize_url(website_url)):
         #     image_url = website_url + "/" + image_url
         return image_url
 
