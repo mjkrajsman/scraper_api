@@ -18,14 +18,20 @@ class View(object):
         # TODO: handle failures
         return simplejson.dumps(pages_dict, for_json=True)
 
+    # TODO: split into texts and images?
     @view_config(route_name='texts', request_method='POST')
     def create_text(self):
-        # TODO: validation?
-        # TODO: image scraping
         scraper = WebScraper()
-        new_url = (self.request.params['url']).encode('utf-8')
+
+        # TODO: validation?
+        new_url = scraper.normalize_url(self.request.params['url'])
         new_text = scraper.get_text_from_url(new_url)
-        new_page = Page(url=new_url, text=new_text)
+
+        image_source_urls = scraper.get_image_links_from_url(new_url)
+        image_local_urls = scraper.get_images(image_source_urls, destination='img')
+        new_images = '; '.join(image_local_urls)
+
+        new_page = Page(url=new_url, text=new_text, images=new_images)
         DBSession.add(new_page)
         DBSession.flush()
         DBSession.refresh(new_page)
@@ -40,3 +46,5 @@ class View(object):
         self.request.response.status = '200 OK'
         # TODO: handle failures
         return simplejson.dumps(page, for_json=True)
+
+    # TODO: GET images (by id)

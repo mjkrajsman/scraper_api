@@ -15,11 +15,11 @@ def _init_testing_db():
     Base.metadata.create_all(engine)
     DBSession.configure(bind=engine)
     with transaction.manager:
-        model = Page(url='www.example.com', text='A B C D')
+        model = Page(url='www.example.com', text='A B C D', images='path1; path2; longer/path3')
         DBSession.add(model)
-        model = Page(url='www.example2.com', text='A B C D E F G H')
+        model = Page(url='www.example2.com', text='A B C D E F G H', images='path1; path2; longer/path3')
         DBSession.add(model)
-        model = Page(url='www.example3.com', text='A B C D E F G H I J K L')
+        model = Page(url='www.example3.com', text='A B C D E F G H I J K L', images='path1; path2; longer/path3')
         DBSession.add(model)
     return DBSession
 
@@ -86,3 +86,4 @@ class FunctionalTests(unittest.TestCase):
         self.assertEqual(res.content_type, 'application/json')
 
 # TODO: SADeprecationWarning: SessionExtension is deprecated in favor of the SessionEvents listener interface.
+# TODO: update tests - automatize requests (Postman)
