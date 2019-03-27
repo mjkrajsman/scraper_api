@@ -1,24 +1,7 @@
 from setuptools import setup
 
-requires = [
-    'pyramid',
-    'pyramid_chameleon',
-    'waitress',
-    'typing',
-    'requests',
-    'bs4',
-    'pyramid_tm',
-    'sqlalchemy',
-    'zope.sqlalchemy',
-    'simplejson',
-    'lxml'
-]
-
-dev_requires = [
-    'pyramid_debugtoolbar',
-    'pytest',
-    'webtest'
-]
+requires = open("requirements.txt").read().strip().split("\n")
+dev_requires = open("dev-requirements.txt").read().strip().split("\n")
 
 setup(
     name='scraper_api',
@@ -28,7 +11,7 @@ setup(
     },
     entry_points={
         'paste.app_factory': [
-            'main = scraper_api:main'
+            'main = scraper_api.app:main'
         ],
         'console_scripts': [
             'initialize_db = scraper_api.initialize_db:main'

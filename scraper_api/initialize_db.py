@@ -1,9 +1,8 @@
 import os
 import sys
-import transaction
 from sqlalchemy import engine_from_config
 from pyramid.paster import get_appsettings, setup_logging
-from .models import DBSession, Page, Base
+from .models import DBSession, Base
 
 
 def usage(argv):
@@ -13,7 +12,9 @@ def usage(argv):
     sys.exit(1)
 
 
-def main(argv=sys.argv):
+def main(argv):
+    if(argv is None):
+        argv = sys.argv
     if len(argv) != 2:
         usage(argv)
     config_uri = argv[1]

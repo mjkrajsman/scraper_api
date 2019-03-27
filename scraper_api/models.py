@@ -62,18 +62,18 @@ class TextScraper(object):
 
 
 class ImageScraper(object):
-    def get_images(self, website_url, destination='img', verbose=False):
+    def get_images(self, website_url, destination='img'):
         image_source_urls = self._get_image_urls(website_url)
         if not os.path.exists(str(destination)):
             os.makedirs(str(destination))
         links = []
         for src in image_source_urls:
-            link = self._get_image(src, destination, verbose)
+            link = self._get_image(src, destination)
             links.append(link)
         return links
 
     @staticmethod
-    def _get_image_urls(website_url, verbose=False):
+    def _get_image_urls(website_url):
         image_urls = []
         html = requests.get(website_url)
         soup = BeautifulSoup(html.content, features="lxml")
@@ -82,14 +82,10 @@ class ImageScraper(object):
             image_url = urllib.parse.urljoin(website_url, image_url)
             image_urls.append(image_url)
         image_urls = list(dict.fromkeys(image_urls))
-        if verbose:
-            print("Found " + str(len(image_urls)) + " images.")
         return image_urls
 
     @staticmethod
-    def _get_image(source, destination='img', verbose=False):
-        if verbose:
-            print("Processing image: " + source)
+    def _get_image(source, destination='img'):
         r = requests.get(source)
         img_name = source.replace("://", "_").replace("/", "_")
         img_location = '%s/%s' % (str(destination), img_name)

@@ -15,7 +15,7 @@ class View(object):
         for page in pages.all():
             pages_dict[page.id] = page
 
-        if len(pages_dict) is 0:
+        if len(pages_dict) == 0:
             self.request.response.status = '404 Not Found'
         else:
             self.request.response.status = '200 OK'
@@ -42,7 +42,7 @@ class View(object):
         for page in pages.all():
             pages_dict[page.id] = page
 
-        if len(pages_dict) is 0:
+        if len(pages_dict) == 0:
             self.request.response.status = '404 Not Found'
         else:
             self.request.response.status = '200 OK'

@@ -1,0 +1,11 @@
+pyramid
+pyramid_chameleon
+waitress
+typing
+requests
+bs4
+pyramid_tm
+sqlalchemy
+zope.sqlalchemy
+simplejson
+lxml

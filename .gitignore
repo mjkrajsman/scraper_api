@@ -108,3 +108,6 @@ venv.bak/
 
 #Databases
 *.sqlite
+
+# downloaded files
+/img

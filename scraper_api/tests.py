@@ -2,15 +2,14 @@ import unittest
 import transaction
 import json
 from pyramid import testing
+from sqlalchemy import create_engine
+from .views import View
+from .models import DBSession, Page, Base
+from pyramid.paster import get_app
+from webtest import TestApp
 
 
 def _init_testing_db():
-    from sqlalchemy import create_engine
-    from .models import (
-        DBSession,
-        Page,
-        Base
-        )
     engine = create_engine('sqlite://')
     Base.metadata.create_all(engine)
     DBSession.configure(bind=engine)
@@ -31,8 +30,6 @@ class ViewTests(unittest.TestCase):
         testing.tearDown()
 
     def test_list_texts(self):
-        from .views import View
-
         request = testing.DummyRequest()
         request.matchdict['id'] = '1'
         inst = View(request)
@@ -41,8 +38,6 @@ class ViewTests(unittest.TestCase):
         self.assertEqual(response['1']['url'], 'www.example.com')
 
     def test_read_text(self):
-        from .views import View
-
         request = testing.DummyRequest()
         request.matchdict['id'] = '1'
         inst = View(request)
@@ -51,8 +46,6 @@ class ViewTests(unittest.TestCase):
         self.assertEqual(response['url'], 'www.example.com')
 
     def test_list_images(self):
-        from .views import View
-
         request = testing.DummyRequest()
         request.matchdict['id'] = '1'
         inst = View(request)
@@ -61,8 +54,6 @@ class ViewTests(unittest.TestCase):
         self.assertEqual(response['1']['url'], 'www.example.com')
 
     def test_read_images(self):
-        from .views import View
-
         request = testing.DummyRequest()
         request.matchdict['id'] = '1'
         inst = View(request)
@@ -72,8 +63,6 @@ class ViewTests(unittest.TestCase):
 
     # TODO: implement this
     # def test_create_text(self):
-    #     from .views import View
-    #
     #     request = testing.DummyRequest(post={'url':'http://www.ztm.waw.pl'})
     #     inst = View(request)
     #     response = inst.create_text()
@@ -82,27 +71,21 @@ class ViewTests(unittest.TestCase):
 
 class FunctionalTests(unittest.TestCase):
     def setUp(self):
-        from pyramid.paster import get_app
         app = get_app('development.ini')
-        from webtest import TestApp
         self.testapp = TestApp(app)
 
     def tearDown(self):
-        from .models import DBSession
         DBSession.remove()
 
     def test_list_texts(self):
         res = self.testapp.get('/texts', status=200)
-        self.assertEqual(res.content_type, 'application/json')
 
     def test_read_text(self):
         res = self.testapp.get('/texts/1', status=200)
-        self.assertEqual(res.content_type, 'application/json')
 
     def test_create_text(self):
         param = {'url': 'http://www.ztm.waw.pl'}
         res = self.testapp.post('/texts', param, status=201)
-        self.assertEqual(res.content_type, 'application/json')
 
 
 # TODO: SADeprecationWarning: SessionExtension is deprecated in favor of the SessionEvents listener interface.
