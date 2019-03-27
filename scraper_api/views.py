@@ -1,7 +1,7 @@
 from pyramid.view import view_config, view_defaults
-from .models import DBSession, Page, WebScraper
+from .models import DBSession, Page, TextScraper, ImageScraper
 import simplejson
-
+import urllib.parse
 
 @view_defaults(renderer='json')
 class View(object):
@@ -64,9 +64,10 @@ class View(object):
 
     @view_config(route_name='texts', request_method='POST')
     def create_text(self):
-        scraper = WebScraper()
+        scraper = TextScraper()
         if 'url' in self.request.params:
-            new_url = scraper.normalize_url(self.request.params['url'])
+            split_url = urllib.parse.urlsplit(self.request.params['url'])
+            new_url = split_url.scheme + '://' + split_url.netloc
             new_text = scraper.get_text_from_url(new_url)
             page = DBSession.query(Page).filter_by(url=new_url).first()
             self.request.response.status = '201 Created'
@@ -84,12 +85,13 @@ class View(object):
 
     @view_config(route_name='images', request_method='POST')
     def create_images(self):
-        scraper = WebScraper()
+        scraper = ImageScraper()
         if 'url' in self.request.params:
-            new_url = scraper.normalize_url(self.request.params['url'])
-            image_source_urls = scraper.get_image_links_from_url(new_url)
-            image_local_urls = scraper.get_images(image_source_urls, destination='img')
+            split_url = urllib.parse.urlsplit(self.request.params['url'])
+            new_url = split_url.scheme + '://' + split_url.netloc
+            image_local_urls = scraper.get_images(new_url, destination='img')
             new_images = '; '.join(image_local_urls)
+
             page = DBSession.query(Page).filter_by(url=new_url).first()
             self.request.response.status = '201 Created'
             if page is None:
