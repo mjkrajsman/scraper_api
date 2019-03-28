@@ -1,15 +1,16 @@
-from pyramid.view import view_config, view_defaults
-from .models import DBSession, Page, TextScraper, ImageScraper, UrlNormalizer
 import json
+from .models import DBSession, ImageScraper, Page, TextScraper, UrlNormalizer
+from pyramid.view import view_config, view_defaults
+
 
 @view_defaults(renderer='json', request_method='GET')
 class TextGetter(object):
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         self.request = request
 
     # TODO: add text dowloading (return whole row?)
     @view_config(route_name='texts')
-    def get_all_texts(self):
+    def get_all_texts(self) -> str:
         pages = DBSession.query(Page.id, Page.url, Page.text).order_by(Page.id)
         pages_dict = {}
         for page in pages.all():
@@ -22,10 +23,9 @@ class TextGetter(object):
 
         return json.dumps(pages_dict)
 
-
     # TODO: add text dowloading (return whole row?)
     @view_config(route_name='text')
-    def get_text(self):
+    def get_text(self) -> str:
         page_id = int(self.request.matchdict['id'])
         page = DBSession.query(Page.id, Page.url, Page.text).filter_by(id=page_id).first()
         if page is None:
@@ -44,7 +44,7 @@ class ImagesGetter(object):
 
     # TODO: add image dowloading (return whole row?)
     @view_config(route_name='images')
-    def get_all_images(self):
+    def get_all_images(self) -> str:
         pages = DBSession.query(Page.id, Page.url, Page.images).order_by(Page.id)
         pages_dict = {}
         for page in pages.all():
@@ -57,10 +57,9 @@ class ImagesGetter(object):
 
         return json.dumps(pages_dict)
 
-
     # TODO: add image dowloading (return whole row?)
     @view_config(route_name='image')
-    def get_images(self):
+    def get_images(self) -> str:
         page_id = int(self.request.matchdict['id'])
         page = DBSession.query(Page.id, Page.url, Page.images).filter_by(id=page_id).first()
         if page is None:
@@ -74,11 +73,11 @@ class ImagesGetter(object):
 
 @view_defaults(renderer='json', request_method='POST')
 class TextPoster(object):
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         self.request = request
 
     @view_config(route_name='texts')
-    def post_text(self):
+    def post_text(self) -> str:
         scraper = TextScraper()
         url_normalizer = UrlNormalizer()
         if 'url' in self.request.params:
@@ -105,12 +104,12 @@ class ImagesPoster(object):
         self.request = request
 
     @view_config(route_name='images')
-    def post_images(self):
-        scraper = ImageScraper()
+    def post_images(self) -> str:
+        scraper = ImageScraper('img')
         url_normalizer = UrlNormalizer()
         if 'url' in self.request.params:
             new_url = url_normalizer.normalize_url(self.request.params['url'])
-            image_local_urls = scraper.scrape_images(new_url, destination='img')
+            image_local_urls = scraper.scrape_images(new_url)
             new_images = '; '.join(image_local_urls)
 
             page = DBSession.query(Page).filter_by(url=new_url).first()

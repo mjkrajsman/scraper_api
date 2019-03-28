@@ -1,13 +1,14 @@
+from bs4 import BeautifulSoup
+import os
 from pyramid.security import Allow, Everyone
+import re
+import requests
 from sqlalchemy import Column, Integer, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
-from zope.sqlalchemy import ZopeTransactionExtension
-import requests
-import os
-from bs4 import BeautifulSoup
-import re
 import urllib.parse
+from zope.sqlalchemy import ZopeTransactionExtension
+
 
 DBSession = scoped_session(
     sessionmaker(extension=ZopeTransactionExtension()))
@@ -26,19 +27,20 @@ class Root(object):
     __acl__ = [(Allow, Everyone, 'view'),
                (Allow, 'group:editors', 'edit')]
 
-    def __init__(self, request):
+    def __init__(self, request) -> None:
         pass
 
 
 class UrlNormalizer(object):
-    def normalize_url(self, website_url):
+    @staticmethod
+    def normalize_url(website_url: str) -> str:
         split_url = urllib.parse.urlsplit(website_url)
         return split_url.scheme + '://' + split_url.netloc
 
 
 class TextScraper(object):
     @staticmethod
-    def scrape_text(website_url):
+    def scrape_text(website_url: str) -> str:
         html = requests.get(website_url)
         soup = BeautifulSoup(html.content, features="lxml")
         for script in soup(["script", "style"]):
@@ -49,18 +51,21 @@ class TextScraper(object):
 
 
 class ImageScraper(object):
-    def scrape_images(self, website_url, destination='img'):
+    def __init__(self, destination: str) -> None:
+        self.destination = destination
+
+    def scrape_images(self, website_url: str) -> list:
         image_source_urls = self._get_image_urls(website_url)
-        if not os.path.exists(str(destination)):
-            os.makedirs(str(destination))
+        if not os.path.exists(str(self.destination)):
+            os.makedirs(str(self.destination))
         links = []
         for src in image_source_urls:
-            link = self._scrape_image(src, destination)
+            link = self._scrape_image(src)
             links.append(link)
         return links
 
     @staticmethod
-    def _get_image_urls(website_url):
+    def _get_image_urls(website_url: str) -> list:
         image_urls = []
         html = requests.get(website_url)
         soup = BeautifulSoup(html.content, features="lxml")
@@ -71,11 +76,10 @@ class ImageScraper(object):
         image_urls = list(dict.fromkeys(image_urls))
         return image_urls
 
-    @staticmethod
-    def _scrape_image(source, destination='img'):
+    def _scrape_image(self, source: str) -> str:
         r = requests.get(source)
         img_name = source.replace("://", "_").replace("/", "_")
-        img_location = '%s/%s' % (str(destination), img_name)
+        img_location = '%s/%s' % (self.destination, img_name)
         # open(img_location, 'wb').write(r.content)
         with open(img_location, 'wb') as f:
             f.write(r.content)
