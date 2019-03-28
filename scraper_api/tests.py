@@ -1,5 +1,5 @@
 import json
-from .models import Base, DBSession, Page
+from .models import Base, DBSession, ImageScraper, Page, TextScraper
 from pyramid import testing
 from pyramid.paster import get_app
 import requests
@@ -87,20 +87,31 @@ class ViewTests(unittest.TestCase):
         self.assertEqual(response['url'], 'http://www.example.com')
 
 
-    # # TODO: implement this
-    # def test_create_text(self):
+    # TODO: implement this, improve this - mock?
+    def test_post_text(self) -> None:
+        request = testing.DummyRequest(params={'url':'http://www.ztm.waw.pl'}, method = 'POST')
+        inst = TextPoster(request)
+        response = json.loads(inst.post_text())
+        #self.assertEqual('Lorem ipsum dolor sit amet, consectetur adipiscing elit', response['url'])
+        self.assertEqual(response['url'], 'http://www.ztm.waw.pl')
+
+    # TODO: uncomment this, improve this - mock?
+    # def test_post_images(self) -> None:
     #     request = testing.DummyRequest(params={'url':'http://www.ztm.waw.pl'}, method = 'POST')
-    #     # request = testing.DummyRequest(json_body = {'url':'http://www.ztm.waw.pl'}, method = 'POST')
+    #     inst = ImagesPoster(request)
+    #     response = json.loads(inst.post_images())
+    #     #self.assertEqual('Lorem ipsum dolor sit amet, consectetur adipiscing elit', response['url'])
+    #     self.assertEqual(response['url'], 'http://www.ztm.waw.pl')
+
+    # # TODO: uncomment this, mock
+    # def test_scrap_text(self) -> None:
+    #     scraped_text = TextScraper.scrap_text()
+    #     self.assertEqual(response['url'], 'http://www.ztm.waw.pl')
     #
-    #     inst = TextPoster(request)
-    #     response = json.loads(inst.post_text())
-    #     self.assertEqual('Lorem ipsum dolor sit amet, consectetur adipiscing elit', response['url'])
-
-    # TODO: TextPoster.post_text
-    # TODO: ImagesPoster.post_images
-
-    # TODO: TextScraper.scrap_text
-    # TODO: ImagesScraper.scrap_images
+    # # TODO: uncomment this, mock
+    # def test_scrap_images(self) -> None:
+    #     scraped_text = ImageScraper.scrap_images()
+    #     self.assertEqual(response['url'], 'http://www.ztm.waw.pl')
 
 
 class FunctionalTests(unittest.TestCase):
@@ -112,27 +123,31 @@ class FunctionalTests(unittest.TestCase):
         DBSession.remove()
 
     def test_get_all_texts(self) -> None:
-        res = self.test_app.get('/texts', status=200)
-        print(res.body)
-        self.assertTrue((b'"{\\"1\\": {\\"id\\": 1, \\"url\\": \\"' in res.body) or (res.status_code == 404))
-        self.assertEqual(res.content_type, 'application/json')
+        response = self.test_app.get('/texts', status=200)
+        self.assertTrue((b'"{\\"1\\": {\\"id\\": 1, \\"url\\": \\"' in response.body) or (response.status_code == 404))
+        self.assertEqual(response.content_type, 'application/json')
 
-    def test_get_images(self):
+    # TODO: improve this
+    def test_get_text(self):
         response = self.test_app.get('/texts/1', status=200)
         self.assertEqual(response.content_type, 'application/json')
 
-    def test_post_text(self) -> None:
-        param = {'url': 'http://www.ztm.waw.pl'}
-        res = self.test_app.post('/texts', param, status=201)
-        self.assertTrue(b'\\"url\\": \\"http://www.ztm.waw.pl\\", \\"text\\": \\' in res.body)
-        self.assertEqual(res.content_type, 'application/json')
-
+    # TODO: improve this
     def test_get_all_images(self):
         response = self.test_app.get('/images', status=200)
+        self.assertTrue((b'"{\\"1\\": {\\"id\\": 1, \\"url\\": \\"' in response.body) or (response.status_code == 404))
         self.assertEqual(response.content_type, 'application/json')
 
+    # TODO: improve this
     def test_get_images(self):
         response = self.test_app.get('/images/1', status=200)
+        self.assertEqual(response.content_type, 'application/json')
+
+    # TODO: mock testing?
+    def test_post_text(self) -> None:
+        param = {'url': 'http://www.ztm.waw.pl'}
+        response = self.test_app.post('/texts', param, status=201)
+        self.assertTrue(b'\\"url\\": \\"http://www.ztm.waw.pl\\", \\"text\\": \\' in response.body)
         self.assertEqual(response.content_type, 'application/json')
 
     # TODO: uncomment later, mock testing?
