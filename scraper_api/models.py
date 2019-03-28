@@ -37,7 +37,7 @@ class UrlNormalizer(object):
     @staticmethod
     def normalize_url(website_url: str) -> str:
         split_url: urllib.parse.SplitResult = urllib.parse.urlsplit(website_url)
-        return split_url.scheme + '://' + split_url.netloc
+        return split_url.scheme + '://' + split_url.netloc + split_url.path
 
 
 class TextScraper(object):
@@ -80,7 +80,7 @@ class ImageScraper(object):
 
     def _scrape_image(self, source: str) -> str:
         r: Response = requests.get(source)
-        img_name: str = source.replace("://", "_").replace("/", "_")
+        img_name: str = re.sub(r'[^\w^\.]',"_", source) #source.replace("://", "_").replace("/", "_")
         img_location: str = '%s/%s' % (self.destination, img_name)
         with open(img_location, 'wb') as f:
             f.write(r.content)
