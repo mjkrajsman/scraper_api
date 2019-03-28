@@ -30,6 +30,8 @@ class ViewTests(unittest.TestCase):
     def setUp(self) -> None:
         self.session = _init_testing_db()
         self.config = testing.setUp()
+        self.mock_webpage_url = 'mock://test.com'
+        self.mock_webpage_contents = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit'
 
     def tearDown(self) -> None:
         self.session.remove()
@@ -89,7 +91,7 @@ class ViewTests(unittest.TestCase):
 
     def test_post_text(self) -> None:
         with requests_mock.Mocker() as m:
-            m.get('mock://test.com', text='Lorem ipsum dolor sit amet, consectetur adipiscing elit')
+            m.get('mock://test.com', text=self.mock_webpage_contents)
             request = testing.DummyRequest(params={'url': 'mock://test.com'}, method='GET')
             inst = TextPoster(request)
             response = json.loads(inst.post_text())
@@ -100,66 +102,70 @@ class ViewTests(unittest.TestCase):
     # TODO: Add images
     def test_post_images(self) -> None:
         with requests_mock.Mocker() as m:
-            m.get('mock://test.com', text='Lorem ipsum dolor sit amet, consectetur adipiscing elit')
-            request = testing.DummyRequest(params={'url': 'mock://test.com'}, method='GET')
+            m.get(self.mock_webpage_url, text=self.mock_webpage_contents)
+            request = testing.DummyRequest(params={'url': self.mock_webpage_url}, method='GET')
             inst = ImagesPoster(request)
             response = json.loads(inst.post_images())
             self.assertEqual(response['id'], 3)
-            self.assertEqual(response['url'], 'mock://test.com')
+            self.assertEqual(response['url'], self.mock_webpage_url)
             self.assertEqual(response['text'], None)
 
     def test_scrap_text(self) -> None:
         text_scraper = TextScraper()
         with requests_mock.Mocker() as m:
-            m.get('mock://test.com', text='Lorem ipsum dolor sit amet, consectetur adipiscing elit')
-            scraped_text = text_scraper.scrap_text('mock://test.com')
-            self.assertEqual(scraped_text, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit')
+            m.get(self.mock_webpage_url, text=self.mock_webpage_contents)
+            scraped_text = text_scraper.scrap_text(self.mock_webpage_url)
+            self.assertEqual(scraped_text, self.mock_webpage_contents)
 
     # TODO: Add images
     def test_scrap_images(self) -> None:
         images_scraper = ImagesScraper('/img')
         with requests_mock.Mocker() as m:
-            m.get('mock://test.com', text='Lorem ipsum dolor sit amet, consectetur adipiscing elit')
-            scraped_images = images_scraper.scrap_images('mock://test.com')
+            m.get(self.mock_webpage_url, text=self.mock_webpage_contents)
+            scraped_images = images_scraper.scrap_images(self.mock_webpage_url)
             self.assertEqual(scraped_images, [])
 
 
 class FunctionalTests(unittest.TestCase):
     def setUp(self) -> None:
+        self.session = _init_testing_db()
+        self.config = testing.setUp()
         app = get_app('development.ini')
         self.test_app = TestApp(app)
+        self.mock_webpage_url = 'mock://test.com'
+        self.mock_webpage_contents = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit'
 
     def tearDown(self) -> None:
         DBSession.remove()
+        self.session.remove()
+        testing.tearDown()
 
     def test_get_all_texts(self) -> None:
         response = self.test_app.get('/texts', status=200)
         self.assertEqual(response.content_type, 'application/json')
 
-    # TODO: improve this
     def test_get_text(self) -> None:
         response = self.test_app.get('/texts/1', status=200)
         self.assertEqual(response.content_type, 'application/json')
 
-    # TODO: improve this
     def test_get_all_images(self) -> None:
         response = self.test_app.get('/images', status=200)
         self.assertEqual(response.content_type, 'application/json')
 
-    # TODO: improve this
     def test_get_images(self) -> None:
         response = self.test_app.get('/images/1', status=200)
         self.assertEqual(response.content_type, 'application/json')
 
-    # TODO: mock testing?
     def test_post_text(self) -> None:
-        param = {'url': 'http://www.ztm.waw.pl'}
-        response = self.test_app.post('/texts', param, status=201)
-        self.assertEqual(response.content_type, 'application/json')
+        with requests_mock.Mocker() as m:
+            m.get(self.mock_webpage_url, text=self.mock_webpage_contents)
+            param = {'url': self.mock_webpage_url}
+            response = self.test_app.post('/texts', param, status=201)
+            self.assertEqual(response.content_type, 'application/json')
 
-    # TODO: uncomment later, mock testing?
-    # def test_post_images(self):
-    #     param = {'url': 'http://www.ztm.waw.pl'}
-    #     res = self.test_app.post('/images', param, status=201)
-    #     self.assertTrue(b'\\"url\\": \\"http://www.ztm.waw.pl\\", \\"text\\": \\' in res.body)
-    #     self.assertEqual(res.content_type, 'application/json')
+    def test_post_images(self) -> None:
+        with requests_mock.Mocker() as m:
+            m.get(self.mock_webpage_url, text=self.mock_webpage_contents)
+            param = {'url': self.mock_webpage_url}
+            response = self.test_app.post('/images', param, status=201)
+            self.assertEqual(response.content_type, 'application/json')
