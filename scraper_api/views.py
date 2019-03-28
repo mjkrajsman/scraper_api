@@ -1,5 +1,5 @@
 import json
-from .models import DBSession, ImageScraper, Page, TextScraper, UrlNormalizer
+from .models import DBSession, ImageScraper, Page, TextScraper
 from pyramid.view import view_config, view_defaults
 from typing import ClassVar, Dict, List
 
@@ -13,8 +13,7 @@ class TextGetter(object):
     def get_all_texts(self) -> str:
 
         if 'url' in self.request.params:
-            url_normalizer: UrlNormalizer = UrlNormalizer()
-            website_url: str = url_normalizer.normalize_url(self.request.params['url'])
+            website_url: str = self.request.params['url']
             pages = DBSession.query(Page.id, Page.url, Page.text)\
                 .order_by(Page.id).filter_by(url=website_url)
         else:
@@ -51,8 +50,7 @@ class ImagesGetter(object):
     @view_config(route_name='images')
     def get_all_images(self) -> str:
         if 'url' in self.request.params:
-            url_normalizer: UrlNormalizer = UrlNormalizer()
-            website_url: str = url_normalizer.normalize_url(self.request.params['url'])
+            website_url: str = self.request.params['url']
             pages = DBSession.query(Page.id, Page.url, Page.images)\
                 .order_by(Page.id).filter_by(url=website_url)
         else:
@@ -89,10 +87,9 @@ class TextPoster(object):
     @view_config(route_name='texts')
     def post_text(self) -> str:
         scraper: TextScraper = TextScraper()
-        url_normalizer: UrlNormalizer = UrlNormalizer()
         if 'url' in self.request.params:
-            new_url: str = url_normalizer.normalize_url(self.request.params['url'])
-            new_text: str = scraper.scrape_text(new_url)
+            new_url: str = self.request.params['url']
+            new_text: str = scraper.scrap_text(new_url)
             page = DBSession.query(Page).filter_by(url=new_url).first()
             self.request.response.status = '201 Created'
             if page is None:
@@ -116,10 +113,9 @@ class ImagesPoster(object):
     @view_config(route_name='images')
     def post_images(self) -> str:
         scraper: ImageScraper = ImageScraper('img')
-        url_normalizer: UrlNormalizer = UrlNormalizer()
         if 'url' in self.request.params:
-            new_url: str = url_normalizer.normalize_url(self.request.params['url'])
-            image_local_urls: List[str] = scraper.scrape_images(new_url)
+            new_url: str = self.request.params['url']
+            image_local_urls: List[str] = scraper.scrap_images(new_url)
             new_images: str = '; '.join(image_local_urls)
 
             page = DBSession.query(Page).filter_by(url=new_url).first()

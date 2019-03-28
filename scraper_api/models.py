@@ -33,16 +33,9 @@ class Root(object):
         pass
 
 
-class UrlNormalizer(object):
-    @staticmethod
-    def normalize_url(website_url: str) -> str:
-        split_url: urllib.parse.SplitResult = urllib.parse.urlsplit(website_url)
-        return split_url.scheme + '://' + split_url.netloc + split_url.path
-
-
 class TextScraper(object):
     @staticmethod
-    def scrape_text(website_url: str) -> str:
+    def scrap_text(website_url: str) -> str:
         html: Response = requests.get(website_url)
         soup: BeautifulSoup = BeautifulSoup(html.content, features="lxml")
         for script in soup(["script", "style"]):
@@ -56,7 +49,7 @@ class ImageScraper(object):
     def __init__(self, destination: str) -> None:
         self.destination = destination
 
-    def scrape_images(self, website_url: str) -> list:
+    def scrap_images(self, website_url: str) -> list:
         image_source_urls: List[str] = self._get_image_urls(website_url)
         if not os.path.exists(str(self.destination)):
             os.makedirs(str(self.destination))
