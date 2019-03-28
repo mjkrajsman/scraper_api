@@ -1,74 +1,89 @@
 from pyramid.view import view_config, view_defaults
-from .models import DBSession, Page, TextScraper, ImageScraper
-import simplejson
-import urllib.parse
+from .models import DBSession, Page, TextScraper, ImageScraper, UrlNormalizer
+import json
 
-@view_defaults(renderer='json')
-class View(object):
+@view_defaults(renderer='json', request_method='GET')
+class TextGetter(object):
     def __init__(self, request):
         self.request = request
 
-    @view_config(route_name='texts', request_method='GET')
-    def list_text(self):
+    # TODO: add text dowloading (return whole row?)
+    @view_config(route_name='texts')
+    def get_all_texts(self):
         pages = DBSession.query(Page.id, Page.url, Page.text).order_by(Page.id)
         pages_dict = {}
         for page in pages.all():
-            pages_dict[page.id] = page
+            pages_dict[page.id] = dict(id=page.id, url=page.url, text=page.text)
 
         if len(pages_dict) == 0:
             self.request.response.status = '404 Not Found'
         else:
             self.request.response.status = '200 OK'
 
-        return simplejson.dumps(pages_dict, for_json=True)
+        return json.dumps(pages_dict)
 
-    @view_config(route_name='text', request_method='GET')
-    def read_text(self):
+
+    # TODO: add text dowloading (return whole row?)
+    @view_config(route_name='text')
+    def get_text(self):
         page_id = int(self.request.matchdict['id'])
         page = DBSession.query(Page.id, Page.url, Page.text).filter_by(id=page_id).first()
         if page is None:
             self.request.response.status = '404 Not Found'
-            page = {}
+            page = Page()
         else:
             self.request.response.status = '200 OK'
 
-        return simplejson.dumps(page, for_json=True)
+        return json.dumps(dict(id=page.id, url=page.url, text=page.text))
 
-    # TODO: add image dowloading
-    @view_config(route_name='images', request_method='GET')
-    def list_images(self):
+
+@view_defaults(renderer='json', request_method='GET')
+class ImagesGetter(object):
+    def __init__(self, request):
+        self.request = request
+
+    # TODO: add image dowloading (return whole row?)
+    @view_config(route_name='images')
+    def get_all_images(self):
         pages = DBSession.query(Page.id, Page.url, Page.images).order_by(Page.id)
         pages_dict = {}
         for page in pages.all():
-            pages_dict[page.id] = page
+            pages_dict[page.id] = dict(id=page.id, url=page.url, images=page.images)
 
         if len(pages_dict) == 0:
             self.request.response.status = '404 Not Found'
         else:
             self.request.response.status = '200 OK'
 
-        return simplejson.dumps(pages_dict, for_json=True)
+        return json.dumps(pages_dict)
 
-    # TODO: add image dowloading
-    @view_config(route_name='image', request_method='GET')
-    def read_images(self):
+
+    # TODO: add image dowloading (return whole row?)
+    @view_config(route_name='image')
+    def get_images(self):
         page_id = int(self.request.matchdict['id'])
         page = DBSession.query(Page.id, Page.url, Page.images).filter_by(id=page_id).first()
         if page is None:
             self.request.response.status = '404 Not Found'
-            page = {}
+            page = Page()
         else:
             self.request.response.status = '200 OK'
 
-        return simplejson.dumps(page, for_json=True)
+        return json.dumps(dict(id=page.id, url=page.url, images=page.images))
 
-    @view_config(route_name='texts', request_method='POST')
-    def create_text(self):
+
+@view_defaults(renderer='json', request_method='POST')
+class TextPoster(object):
+    def __init__(self, request):
+        self.request = request
+
+    @view_config(route_name='texts')
+    def post_text(self):
         scraper = TextScraper()
+        url_normalizer = UrlNormalizer()
         if 'url' in self.request.params:
-            split_url = urllib.parse.urlsplit(self.request.params['url'])
-            new_url = split_url.scheme + '://' + split_url.netloc
-            new_text = scraper.get_text_from_url(new_url)
+            new_url = url_normalizer.normalize_url(self.request.params['url'])
+            new_text = scraper.scrape_text(new_url)
             page = DBSession.query(Page).filter_by(url=new_url).first()
             self.request.response.status = '201 Created'
             if page is None:
@@ -80,16 +95,22 @@ class View(object):
             DBSession.refresh(page)
         else:
             self.request.response.status = '400 Bad Request'
-            page = {}
-        return simplejson.dumps(page, for_json=True)
+            page = Page()
+        return json.dumps(dict(id=page.id, url=page.url, text=page.text, images=page.images))
 
-    @view_config(route_name='images', request_method='POST')
-    def create_images(self):
+
+@view_defaults(renderer='json', request_method='POST')
+class ImagesPoster(object):
+    def __init__(self, request):
+        self.request = request
+
+    @view_config(route_name='images')
+    def post_images(self):
         scraper = ImageScraper()
+        url_normalizer = UrlNormalizer()
         if 'url' in self.request.params:
-            split_url = urllib.parse.urlsplit(self.request.params['url'])
-            new_url = split_url.scheme + '://' + split_url.netloc
-            image_local_urls = scraper.get_images(new_url, destination='img')
+            new_url = url_normalizer.normalize_url(self.request.params['url'])
+            image_local_urls = scraper.scrape_images(new_url, destination='img')
             new_images = '; '.join(image_local_urls)
 
             page = DBSession.query(Page).filter_by(url=new_url).first()
@@ -103,7 +124,7 @@ class View(object):
             DBSession.refresh(page)
         else:
             self.request.response.status = '400 Bad Request'
-            page = {}
-        return simplejson.dumps(page, for_json=True)
+            page = Page()
+        return json.dumps(dict(id=page.id, url=page.url, text=page.text, images=page.images))
 
         # TODO: URLvalidation?

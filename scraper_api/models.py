@@ -21,25 +21,6 @@ class Page(Base):
     text = Column(Text)
     images = Column(Text)
 
-    def __json__(self):
-        return {
-            'id': self.id,
-            'url': self.url,
-            'text': self.text,
-            'images': self.images
-        }
-
-    for_json = __json__
-
-    @classmethod
-    def from_json(cls, source):
-        obj = cls()
-        obj.id = source['id']
-        obj.url = source['url']
-        obj.text = source['text']
-        obj.images = source['images']
-        return obj
-
 
 class Root(object):
     __acl__ = [(Allow, Everyone, 'view'),
@@ -49,9 +30,15 @@ class Root(object):
         pass
 
 
+class UrlNormalizer(object):
+    def normalize_url(self, website_url):
+        split_url = urllib.parse.urlsplit(website_url)
+        return split_url.scheme + '://' + split_url.netloc
+
+
 class TextScraper(object):
     @staticmethod
-    def get_text_from_url(website_url):
+    def scrape_text(website_url):
         html = requests.get(website_url)
         soup = BeautifulSoup(html.content, features="lxml")
         for script in soup(["script", "style"]):
@@ -62,13 +49,13 @@ class TextScraper(object):
 
 
 class ImageScraper(object):
-    def get_images(self, website_url, destination='img'):
+    def scrape_images(self, website_url, destination='img'):
         image_source_urls = self._get_image_urls(website_url)
         if not os.path.exists(str(destination)):
             os.makedirs(str(destination))
         links = []
         for src in image_source_urls:
-            link = self._get_image(src, destination)
+            link = self._scrape_image(src, destination)
             links.append(link)
         return links
 
@@ -85,7 +72,7 @@ class ImageScraper(object):
         return image_urls
 
     @staticmethod
-    def _get_image(source, destination='img'):
+    def _scrape_image(source, destination='img'):
         r = requests.get(source)
         img_name = source.replace("://", "_").replace("/", "_")
         img_location = '%s/%s' % (str(destination), img_name)
