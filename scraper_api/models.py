@@ -82,7 +82,6 @@ class ImageScraper(object):
         r: Response = requests.get(source)
         img_name: str = source.replace("://", "_").replace("/", "_")
         img_location: str = '%s/%s' % (self.destination, img_name)
-        # open(img_location, 'wb').write(r.content)
         with open(img_location, 'wb') as f:
             f.write(r.content)
         return img_location

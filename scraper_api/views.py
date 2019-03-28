@@ -9,7 +9,6 @@ class TextGetter(object):
     def __init__(self, request) -> None:
         self.request = request
 
-    # TODO: add text dowloading (return whole row?)
     @view_config(route_name='texts')
     def get_all_texts(self) -> str:
 
@@ -31,7 +30,6 @@ class TextGetter(object):
 
         return json.dumps(pages_dict)
 
-    # TODO: add text dowloading (return whole row?)
     @view_config(route_name='text')
     def get_text(self) -> str:
         page_id: int = self.request.matchdict['id']
@@ -50,7 +48,6 @@ class ImagesGetter(object):
     def __init__(self, request):
         self.request = request
 
-    # TODO: add image dowloading (return whole row?)
     @view_config(route_name='images')
     def get_all_images(self) -> str:
         if 'url' in self.request.params:
@@ -71,7 +68,6 @@ class ImagesGetter(object):
 
         return json.dumps(pages_dict)
 
-    # TODO: add image dowloading (return whole row?)
     @view_config(route_name='image')
     def get_images(self) -> str:
         page_id: int = self.request.matchdict['id']
@@ -139,5 +135,3 @@ class ImagesPoster(object):
             self.request.response.status = '400 Bad Request'
             page = Page()
         return json.dumps(dict(id=page.id, url=page.url, text=page.text, images=page.images))
-
-        # TODO: URLvalidation?

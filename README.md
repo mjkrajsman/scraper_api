@@ -3,6 +3,8 @@ Recruitment task
 
 1. Windows:
 * `set VENV=path\to\venv`
+* `cd %VENV%`
+* `cd ..`
 * `python -m venv %VENV%`
 * `%VENV%\Scripts\pip install pyramid waitress`
 * `%VENV%\Scripts\pip install -e ".[dev]"`
@@ -10,7 +12,7 @@ Recruitment task
 * `%VENV%\Scripts\pytest scraper_api\tests.py -q`
 * `%VENV%\Scripts\pserve development.ini --reload`
 
-2. Linux:
+2. Linux (nietestowane):
 * `export VENV=~/path/to/venv`
 * `python3 -m venv $VENV`
 * `$VENV/bin/pip install pyramid waitress`
