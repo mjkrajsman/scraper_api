@@ -12,7 +12,14 @@ class TextGetter(object):
     # TODO: add text dowloading (return whole row?)
     @view_config(route_name='texts')
     def get_all_texts(self) -> str:
-        pages = DBSession.query(Page.id, Page.url, Page.text).order_by(Page.id)
+
+        if 'url' in self.request.params:
+            url_normalizer: UrlNormalizer = UrlNormalizer()
+            website_url: str = url_normalizer.normalize_url(self.request.params['url'])
+            pages = DBSession.query(Page.id, Page.url, Page.text)\
+                .order_by(Page.id).filter_by(url=website_url)
+        else:
+            pages = DBSession.query(Page.id, Page.url, Page.text).order_by(Page.id)
         pages_dict: ClassVar[Dict] = {}
         for page in pages.all():
             pages_dict[page.id] = dict(id=page.id, url=page.url, text=page.text)
@@ -46,7 +53,13 @@ class ImagesGetter(object):
     # TODO: add image dowloading (return whole row?)
     @view_config(route_name='images')
     def get_all_images(self) -> str:
-        pages = DBSession.query(Page.id, Page.url, Page.images).order_by(Page.id)
+        if 'url' in self.request.params:
+            url_normalizer: UrlNormalizer = UrlNormalizer()
+            website_url: str = url_normalizer.normalize_url(self.request.params['url'])
+            pages = DBSession.query(Page.id, Page.url, Page.images)\
+                .order_by(Page.id).filter_by(url=website_url)
+        else:
+            pages = DBSession.query(Page.id, Page.url, Page.images).order_by(Page.id)
         pages_dict: ClassVar[Dict] = {}
         for page in pages.all():
             pages_dict[page.id] = dict(id=page.id, url=page.url, images=page.images)
