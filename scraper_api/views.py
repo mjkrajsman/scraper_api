@@ -1,6 +1,7 @@
 import json
 from .models import DBSession, ImageScraper, Page, TextScraper, UrlNormalizer
 from pyramid.view import view_config, view_defaults
+from typing import ClassVar, Dict, List
 
 
 @view_defaults(renderer='json', request_method='GET')
@@ -12,7 +13,7 @@ class TextGetter(object):
     @view_config(route_name='texts')
     def get_all_texts(self) -> str:
         pages = DBSession.query(Page.id, Page.url, Page.text).order_by(Page.id)
-        pages_dict = {}
+        pages_dict: ClassVar[Dict] = {}
         for page in pages.all():
             pages_dict[page.id] = dict(id=page.id, url=page.url, text=page.text)
 
@@ -26,7 +27,7 @@ class TextGetter(object):
     # TODO: add text dowloading (return whole row?)
     @view_config(route_name='text')
     def get_text(self) -> str:
-        page_id = int(self.request.matchdict['id'])
+        page_id: int = self.request.matchdict['id']
         page = DBSession.query(Page.id, Page.url, Page.text).filter_by(id=page_id).first()
         if page is None:
             self.request.response.status = '404 Not Found'
@@ -46,7 +47,7 @@ class ImagesGetter(object):
     @view_config(route_name='images')
     def get_all_images(self) -> str:
         pages = DBSession.query(Page.id, Page.url, Page.images).order_by(Page.id)
-        pages_dict = {}
+        pages_dict: ClassVar[Dict] = {}
         for page in pages.all():
             pages_dict[page.id] = dict(id=page.id, url=page.url, images=page.images)
 
@@ -60,7 +61,7 @@ class ImagesGetter(object):
     # TODO: add image dowloading (return whole row?)
     @view_config(route_name='image')
     def get_images(self) -> str:
-        page_id = int(self.request.matchdict['id'])
+        page_id: int = self.request.matchdict['id']
         page = DBSession.query(Page.id, Page.url, Page.images).filter_by(id=page_id).first()
         if page is None:
             self.request.response.status = '404 Not Found'
@@ -78,17 +79,17 @@ class TextPoster(object):
 
     @view_config(route_name='texts')
     def post_text(self) -> str:
-        scraper = TextScraper()
-        url_normalizer = UrlNormalizer()
+        scraper: TextScraper = TextScraper()
+        url_normalizer: UrlNormalizer = UrlNormalizer()
         if 'url' in self.request.params:
-            new_url = url_normalizer.normalize_url(self.request.params['url'])
-            new_text = scraper.scrape_text(new_url)
+            new_url: str = url_normalizer.normalize_url(self.request.params['url'])
+            new_text: str = scraper.scrape_text(new_url)
             page = DBSession.query(Page).filter_by(url=new_url).first()
             self.request.response.status = '201 Created'
             if page is None:
                 page = Page(url=new_url, text=new_text)
             else:
-                page.text = new_text
+                page.text: str = new_text
             DBSession.add(page)
             DBSession.flush()
             DBSession.refresh(page)
@@ -105,19 +106,19 @@ class ImagesPoster(object):
 
     @view_config(route_name='images')
     def post_images(self) -> str:
-        scraper = ImageScraper('img')
-        url_normalizer = UrlNormalizer()
+        scraper: ImageScraper = ImageScraper('img')
+        url_normalizer: UrlNormalizer = UrlNormalizer()
         if 'url' in self.request.params:
-            new_url = url_normalizer.normalize_url(self.request.params['url'])
-            image_local_urls = scraper.scrape_images(new_url)
-            new_images = '; '.join(image_local_urls)
+            new_url: str = url_normalizer.normalize_url(self.request.params['url'])
+            image_local_urls: List[str] = scraper.scrape_images(new_url)
+            new_images: str = '; '.join(image_local_urls)
 
             page = DBSession.query(Page).filter_by(url=new_url).first()
             self.request.response.status = '201 Created'
             if page is None:
                 page = Page(url=new_url, images=new_images)
             else:
-                page.images = new_images
+                page.images: str = new_images
             DBSession.add(page)
             DBSession.flush()
             DBSession.refresh(page)
