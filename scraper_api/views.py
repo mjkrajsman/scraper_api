@@ -1,5 +1,5 @@
 import json
-from .models import DBSession, ImageScraper, Page, TextScraper
+from .models import DBSession, ImagesScraper, Page, TextScraper
 from pyramid.view import view_config, view_defaults
 from typing import ClassVar, Dict, List
 
@@ -112,7 +112,7 @@ class ImagesPoster(object):
 
     @view_config(route_name='images')
     def post_images(self) -> str:
-        scraper: ImageScraper = ImageScraper('img')
+        scraper: ImagesScraper = ImagesScraper('img')
         if 'url' in self.request.params:
             new_url: str = self.request.params['url']
             image_local_urls: List[str] = scraper.scrap_images(new_url)
